@@ -34,7 +34,7 @@ def move(xy1):
                 buffFig.y = xy1[1]
                 board[xy1[0]][xy1[1]] = buffFig
                 board[buff[0]][buff[1]] = EmptyFig(buff[0], buff[1])
-
+                board[xy1[0]][xy1[1]].refresh()
 
 
 
@@ -71,8 +71,11 @@ class EmptyFig():
         self.x = x
         self.y = y
         self.color = "Empty"
+        self.refresh()
+
+    def refresh(self):
         a = lambda: move([self.x, self.y])
-        self.pic = tk.Button(frame, image=img_white, width = img_x, height = img_y, command = a)
+        self.pic = tk.Button(frame, image=img_white, width=img_x, height=img_y, command=a)
 
     def __repr__(self):
         return "empty"
@@ -91,6 +94,7 @@ class Rook(Figure):
             img = img_horse_white
 
         self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
+
 
     def check_move_possible(self, target_x, target_y):
 
@@ -129,14 +133,20 @@ class Horse(Figure):
         self.color = color
 
         #self.pic = Label(frame, image=img_horse, width=img_x, height=img_y)
-        a = lambda: move([self.x,self.y])
 
+
+        self.refresh()
+
+    def refresh(self):
+        a = lambda: move([self.x, self.y])
         if (self.color == "black"):
             img = img_horse_black
         else:
             img = img_horse_white
 
-        self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command = a)
+        self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
+
+
     def check_move_possible(self, target_x, target_y):
         return True
         if(abs(self.x - target_x) == 1):
@@ -211,7 +221,7 @@ def show(board):
         j = 0
         for fig in line:
             j +=1
-
+            #fig.refresh()
             fig.pic.grid(row=i, column=j)
 
 if __name__ == '__main__':
