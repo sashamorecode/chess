@@ -52,8 +52,8 @@ def move(xy1):
     else:
         buff = [9,9]
 
-    for line in board:
-        print(line)
+    #for line in board:
+    #    print(line)
 
 class Figure:
     def __init__(self, x, y):
@@ -92,9 +92,9 @@ class Rook(Figure):
         a = lambda: move([self.x, self.y])
 
         if (self.color == "black"):
-            img = img_horse_black
+            img = img_rook_black
         else:
-            img = img_horse_white
+            img = img_rook_white
 
         self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
 
@@ -268,6 +268,12 @@ if __name__ == '__main__':
     img_pawn_black = ImageOps.invert(img_pawn_white)
     img_pawn_white = ImageTk.PhotoImage(img_pawn_white)
     img_pawn_black = ImageTk.PhotoImage(img_pawn_black)
+
+    img_rook_white = (Image.open("rook_w.jpg"))
+    img_rook_white = img_rook_white.resize((img_x, img_y), Image.ANTIALIAS)
+    img_rook_black = ImageOps.invert(img_rook_white)
+    img_rook_white = ImageTk.PhotoImage(img_rook_white)
+    img_rook_black = ImageTk.PhotoImage(img_rook_black)
 
 
 
