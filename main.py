@@ -105,7 +105,11 @@ class Rook(Figure):
             return False
         target_fig = board[target_x][target_y]
         if(target_x == self.x and target_y != self.y):
-            for y in range(self.y + 1, target_y):
+            if (self.y - target_y > 0):
+                incr = -1
+            else:
+                incr = 1
+            for y in range(self.y + incr, target_y, incr):
                 if(isinstance(board[self.x][y], Figure)):
                     return False
             if(not isinstance(target_fig, Figure)):
@@ -117,7 +121,11 @@ class Rook(Figure):
             return True
 
         if (target_x != self.x and target_y == self.y):
-            for x in range(self.x + 1, target_x):
+            if (self.x - target_x > 0):
+                incr = -1
+            else:
+                incr = 1
+            for x in range(self.x + incr, target_x, incr):
                 if (isinstance(board[x][self.y], Figure)):
                     return False
             if (not isinstance(target_fig, Figure)):
