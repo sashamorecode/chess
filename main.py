@@ -22,8 +22,8 @@ def move(xy1):
 
 
     global buff
-    print(xy1)
-    print("x: ", board[xy1[0]][xy1[1]].x, "y: ", board[xy1[0]][xy1[1]].y)
+    #print(xy1)
+    #print("x: ", board[xy1[0]][xy1[1]].x, "y: ", board[xy1[0]][xy1[1]].y)
     if(buff != [9,9] and buff != xy1):
 
 
@@ -86,8 +86,9 @@ class Rook(Figure):
         self.x = x
         self.y = y
         self.color = color
-
+        self.refresh()
         # self.pic = Label(frame, image=img_horse, width=img_x, height=img_y)
+    def refresh(self):
         a = lambda: move([self.x, self.y])
 
         if (self.color == "black"):
@@ -180,9 +181,6 @@ class Pawn(Figure):
     def check_move_possible(self, target_x, target_y):
         if(target_x < 0 or target_x > 7 or target_y < 0 or target_y > 7):
             return False
-
-
-
         if(target_y == self.y):
 
             if (target_x == self.x - 1 and self.color == "white"):
@@ -271,9 +269,9 @@ if __name__ == '__main__':
             elif x in [1]:
                 fig = Pawn(x,y, "black")
             elif x in [7]:
-                fig = Horse(x,y, "white")
+                fig = Rook(x,y, "white")
             elif x in [0]:
-                fig = Horse(x,y,"black")
+                fig = Rook(x,y,"black")
 
 
             else:
