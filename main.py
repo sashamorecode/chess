@@ -10,8 +10,13 @@ img_y = 100
 
 buff = [9,9]
 
-
-
+turn = "white"
+def switch_turn():
+    global turn
+    if(turn == "white"):
+        turn = "black"
+    else:
+        turn = "white"
 
 
 
@@ -20,10 +25,11 @@ def move(xy1):
 
 
 
-
+    global turn
     global buff
     #print(xy1)
     #print("x: ", board[xy1[0]][xy1[1]].x, "y: ", board[xy1[0]][xy1[1]].y)
+
     if(buff != [9,9] and buff != xy1):
 
 
@@ -37,6 +43,9 @@ def move(xy1):
                 board[xy1[0]][xy1[1]].refresh()
 
 
+                switch_turn()
+
+
 
 
         buff = [9,9]
@@ -48,11 +57,15 @@ def move(xy1):
     elif(buff == xy1):
         buff = [9,9]
     elif(isinstance(board[xy1[0]][xy1[1]],Figure)):
-        buff = xy1
+        if(board[xy1[0]][xy1[1]].color == turn):
+            buff = xy1
+        else:
+            buff = [9,9]
     else:
         buff = [9,9]
 
-    #for line in board:
+
+        #for line in board:
     #    print(line)
 
 class Figure:
@@ -75,6 +88,55 @@ class EmptyFig():
 
     def __repr__(self):
         return "empty"
+
+class Bishop(Figure):
+    def __init__(self, x, y, color):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.refresh()
+        # self.pic = Label(frame, image=img_horse, width=img_x, height=img_y)
+    def refresh(self):
+        a = lambda: move([self.x, self.y])
+
+        if (self.color == "black"):
+            img = img_bishop_black
+        else:
+            img = img_bishop_white
+
+        self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
+
+
+    def check_move_possible(self, target_x, target_y):
+
+        if(self.color == board[target_x][target_y].color):
+            return False
+        if(abs(self.x-target_x) == abs(self.y - target_y)):
+
+            if(self.x > target_x):
+                if(self.y > target_y):
+                    toX = range(self.x -1, target_x, -1)
+                    toY = range(self.y -1, target_y, -1)
+
+                if(self.y < target_y):
+                    toX = range(self.x -1, target_x, -1)
+                    toY = range(self.y +1, target_y, 1)
+            if(self.x<target_x):
+                if (self.y > target_y):
+                    toX = range(self.x +1, target_x, 1)
+                    toY = range(self.y -1, target_y, -1)
+
+                if (self.y < target_y):
+                    toX = range(self.x +1, target_x, 1)
+                    toY = range(self.y +1, target_y, 1)
+
+            for xy in range(0,abs(self.x - target_x)-1):
+                print(xy)
+                print(toX[xy],toY[xy])
+                if(isinstance(board[toX[xy]][toY[xy]], Figure)):
+                    return False
+            return True
+
 
 class Rook(Figure):
     def __init__(self, x, y, color):
@@ -279,7 +341,11 @@ if __name__ == '__main__':
     img_rook_white = ImageTk.PhotoImage(img_rook_white)
     img_rook_black = ImageTk.PhotoImage(img_rook_black)
 
-
+    img_bishop_white = (Image.open("bishop_w.jpg"))
+    img_bishop_white = img_bishop_white.resize((img_x, img_y), Image.ANTIALIAS)
+    img_bishop_black = ImageOps.invert(img_bishop_white)
+    img_bishop_white = ImageTk.PhotoImage(img_bishop_white)
+    img_bishop_black = ImageTk.PhotoImage(img_bishop_black)
 
     #board = [[None] * 8]*8
     board = []
@@ -294,11 +360,15 @@ if __name__ == '__main__':
             elif x in [7]:
                 if y in [1,6]:
                     fig = Horse(x,y, "white")
+                elif y in [2,5]:
+                    fig = Bishop(x,y,"white")
                 else:
                     fig = Rook(x,y, "white")
             elif x in [0]:
                 if y in [1,6]:
                     fig = Horse(x,y, "black")
+                elif y in [2,5]:
+                    fig = Bishop(x,y,"black")
                 else:
 
                     fig = Rook(x,y,"black")
