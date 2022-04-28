@@ -65,6 +65,8 @@ class Figure:
 
 
 
+
+
 class EmptyFig():
     def __init__(self,x,y):
         #self.pic = Label(frame, image=img_white, width=img_x, height=img_y)
@@ -163,14 +165,17 @@ class Pawn(Figure):
         self.x = x
         self.y = y
         self.firstMove = True
+        self.refresh()
+
+    def refresh(self):
         a = lambda: move([self.x, self.y])
         if (self.color == "black"):
             img = img_pawn_black
         else:
             img = img_pawn_white
 
-
         self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
+
 
     def check_move_possible(self, target_x, target_y):
         if(target_x < 0 or target_x > 7 or target_y < 0 or target_y > 7):
@@ -193,21 +198,21 @@ class Pawn(Figure):
         if(self.firstMove):
             if (target_y == self.y):
 
-                if (target_x == self.x - 2 and self.color == "white"):
+                if (target_x == self.x - 2 and self.color == "white" and not isinstance(board[self.x -1][self.y], Figure)):
                     if (isinstance(board[target_x][target_y], Figure)):
                         return False
                     return True
 
-                if (target_x == self.x + 2 and self.color == "black"):
+                if (target_x == self.x + 2 and self.color == "black" and not isinstance(board[self.x +1][self.y], Figure)):
                     if (isinstance(board[target_x][target_y], Figure)):
                         return False
                     return True
 
         if(self.color == "white"):
-            if(self.y -1 == target_y and self.x-1 == target_x and isinstance(board[target_x][target_y], Figure)):
+            if(((self.y + 1 == target_y and self.x - 1 == target_x) or (self.y - 1 == target_y and self.x - 1 == target_x) )and isinstance(board[target_x][target_y], Figure)):
                 return True
         if (self.color == "black"):
-            if (self.x + 1 == target_x and self.y + 1 == target_y and isinstance(board[target_x][target_y], Figure)):
+            if (((self.y - 1 == target_y and self.x + 1 == target_x) or (self.y + 1 == target_y and self.x + 1 == target_x) )and isinstance(board[target_x][target_y], Figure)):
                 return True
         return False
 
@@ -262,9 +267,9 @@ if __name__ == '__main__':
         line = []
         for y in range(0, 8):
             if x in [6]:
-                fig = Horse(x,y, "white")
+                fig = Pawn(x,y, "white")
             elif x in [1]:
-                fig = Horse(x,y, "black")
+                fig = Pawn(x,y, "black")
             elif x in [7]:
                 fig = Horse(x,y, "white")
             elif x in [0]:
