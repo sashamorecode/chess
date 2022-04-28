@@ -137,6 +137,7 @@ class Rook(Figure):
             return True
 
         return False
+
 class Horse(Figure):
     def __init__(self,x,y, color):
         self.x = x
@@ -206,6 +207,7 @@ class Pawn(Figure):
                 return True
 
         if(self.firstMove):
+            self.firstMove = False
             if (target_y == self.y):
 
                 if (target_x == self.x - 2 and self.color == "white" and not isinstance(board[self.x -1][self.y], Figure)):
@@ -219,13 +221,16 @@ class Pawn(Figure):
                     return True
 
         if(self.color == "white"):
-            if(((self.y + 1 == target_y and self.x - 1 == target_x) or (self.y - 1 == target_y and self.x - 1 == target_x) )and isinstance(board[target_x][target_y], Figure)):
+            if(((self.y + 1 == target_y and self.x - 1 == target_x) or (self.y - 1 == target_y and self.x - 1 == target_x) ) and isinstance(board[target_x][target_y], Figure)):
 
                 return True
         if (self.color == "black"):
             if (((self.y - 1 == target_y and self.x + 1 == target_x) or (self.y + 1 == target_y and self.x + 1 == target_x) )and isinstance(board[target_x][target_y], Figure)):
                 return True
         return False
+
+
+
 
 def show(board):
 
@@ -239,6 +244,8 @@ def show(board):
             j +=1
             #fig.refresh()
             fig.pic.grid(row=i, column=j)
+
+
 
 if __name__ == '__main__':
 
