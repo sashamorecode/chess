@@ -187,6 +187,10 @@ class Pawn(Figure):
 
 
     def check_move_possible(self, target_x, target_y):
+
+        if (board[target_x][target_y].color == self.color):
+            return False
+
         if(target_x < 0 or target_x > 7 or target_y < 0 or target_y > 7):
             return False
         if(target_y == self.y):
@@ -216,6 +220,7 @@ class Pawn(Figure):
 
         if(self.color == "white"):
             if(((self.y + 1 == target_y and self.x - 1 == target_x) or (self.y - 1 == target_y and self.x - 1 == target_x) )and isinstance(board[target_x][target_y], Figure)):
+
                 return True
         if (self.color == "black"):
             if (((self.y - 1 == target_y and self.x + 1 == target_x) or (self.y + 1 == target_y and self.x + 1 == target_x) )and isinstance(board[target_x][target_y], Figure)):
