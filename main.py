@@ -61,12 +61,6 @@ class Figure:
         self.y = y
 
 
-
-
-
-
-
-
 class EmptyFig():
     def __init__(self,x,y):
         #self.pic = Label(frame, image=img_white, width=img_x, height=img_y)
@@ -81,6 +75,7 @@ class EmptyFig():
 
     def __repr__(self):
         return "empty"
+
 class Rook(Figure):
     def __init__(self, x, y, color):
         self.x = x
@@ -160,9 +155,11 @@ class Horse(Figure):
 
 
     def check_move_possible(self, target_x, target_y):
-        return True
-        if(abs(self.x - target_x) == 1):
-            return True
+
+        if((abs(self.x - target_x) == 1 and abs(self.y - target_y) == 2) or (abs(self.x - target_x) == 2 and abs(self.y - target_y) == 1)):
+            if(self.color != board[target_x][target_y].color):
+                return True
+            return False
         return False
 
     def __repr__(self):
@@ -295,9 +292,16 @@ if __name__ == '__main__':
             elif x in [1]:
                 fig = Pawn(x,y, "black")
             elif x in [7]:
-                fig = Rook(x,y, "white")
+                if y in [1,6]:
+                    fig = Horse(x,y, "white")
+                else:
+                    fig = Rook(x,y, "white")
             elif x in [0]:
-                fig = Rook(x,y,"black")
+                if y in [1,6]:
+                    fig = Horse(x,y, "black")
+                else:
+
+                    fig = Rook(x,y,"black")
 
 
             else:
