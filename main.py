@@ -304,7 +304,13 @@ def show(board):
             #fig.refresh()
             fig.pic.grid(row=i, column=j)
 
-
+def loadImg(img):
+    img_horse_white = (Image.open(img))
+    img_horse_white = img_horse_white.resize((img_x, img_y), Image.ANTIALIAS)
+    img_horse_black = ImageOps.invert(img_horse_white)
+    img_horse_white = ImageTk.PhotoImage(img_horse_white)
+    img_horse_black = ImageTk.PhotoImage(img_horse_black)
+    return img_horse_white, img_horse_black
 
 if __name__ == '__main__':
 
@@ -318,35 +324,22 @@ if __name__ == '__main__':
 
 
     # image loading
-    img_horse_white = (Image.open("horse_w.jpg"))
-    img_horse_white = img_horse_white.resize((img_x, img_y), Image.ANTIALIAS)
-    img_horse_black = ImageOps.invert(img_horse_white)
-    img_horse_white = ImageTk.PhotoImage(img_horse_white)
-    img_horse_black = ImageTk.PhotoImage(img_horse_black)
-
+    img_horse_white, img_horse_black = loadImg("horse_w.jpg")
 
     img_white = (Image.open("white.jpg"))
     img_white = img_white.resize((img_x, img_y), Image.ANTIALIAS)
     img_white = ImageTk.PhotoImage(img_white)
 
-    img_pawn_white = (Image.open("pawn_w.jpg"))
-    img_pawn_white = img_pawn_white.resize((img_x, img_y), Image.ANTIALIAS)
-    img_pawn_black = ImageOps.invert(img_pawn_white)
-    img_pawn_white = ImageTk.PhotoImage(img_pawn_white)
-    img_pawn_black = ImageTk.PhotoImage(img_pawn_black)
+    img_pawn_white, img_pawn_black = loadImg("pawn_w.jpg")
 
-    img_rook_white = (Image.open("rook_w.jpg"))
-    img_rook_white = img_rook_white.resize((img_x, img_y), Image.ANTIALIAS)
-    img_rook_black = ImageOps.invert(img_rook_white)
-    img_rook_white = ImageTk.PhotoImage(img_rook_white)
-    img_rook_black = ImageTk.PhotoImage(img_rook_black)
 
+    img_rook_white, img_rook_black = loadImg("rook_w.jpg")
     img_bishop_white = (Image.open("bishop_w.jpg"))
-    img_bishop_white = img_bishop_white.resize((img_x, img_y), Image.ANTIALIAS)
-    img_bishop_black = ImageOps.invert(img_bishop_white)
-    img_bishop_white = ImageTk.PhotoImage(img_bishop_white)
-    img_bishop_black = ImageTk.PhotoImage(img_bishop_black)
 
+    img_bishop_white, img_bishop_black = loadImg("bishop_w.jpg")
+
+    img_queen_white, img_queen_black = loadImg("queen_w.jpg0")
+    img_king_white, img_queen_black = loadImg("king_w.jpg")
     #board = [[None] * 8]*8
     board = []
 
