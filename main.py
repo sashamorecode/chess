@@ -69,6 +69,7 @@ def move(xy1):
         if (isinstance(buffFig, Figure)):  # check that object that is to me moved is a Figure
             if (buffFig.check_move_possible(xy1[0], xy1[1])):  # check that the move is possible using the pieces internal check move possible function
                 # set buff figs internal cordinates to the new position it is being moved to
+
                 buffFig.x = xy1[0]
                 buffFig.y = xy1[1]
 
@@ -83,11 +84,12 @@ def move(xy1):
                 #else:
                 #    print(turn, " is in check after this move, so it is not possible")
 
-
+        show(board[buff[0]][buff[1]])
+        show(board[xy1[0]][xy1[1]])
 
         buff = [9, 9]  # reset buffer
 
-        showAll(board)
+
 
     elif (buff == xy1):  # reset buffer if click same objet twice
         buff = [9, 9]
@@ -428,9 +430,9 @@ class Pawn(Figure):
         return False
 
 
-def show(board, target_x, target_y):
+def show(fig):
     #i = 0
-    board[target_x][target_y].pic.grid(row=target_x, column=target_y)
+    fig.pic.grid(row=fig.x +1, column=fig.y +1)
 
 
 def showAll(board):
