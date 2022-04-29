@@ -194,6 +194,66 @@ class Queen(Figure):
         super(Queen, self).__init__(x, y, color)
 
     def check_move_possible(self, target_x, target_y):
+        if (target_x < 0 or target_x > 7 or target_y < 0 or target_y > 7):
+            return False
+        target_fig = board[target_x][target_y]
+        if (target_x == self.x and target_y != self.y):
+            if (self.y - target_y > 0):
+                incr = -1
+            else:
+                incr = 1
+            for y in range(self.y + incr, target_y, incr):
+                if (isinstance(board[self.x][y], Figure)):
+                    return False
+            if (not isinstance(target_fig, Figure)):
+                return True
+            elif (self.color == target_fig.color):
+                return False
+
+            board[target_x][target_y] = EmptyFig(target_x, target_y)
+            return True
+        if (target_x != self.x and target_y == self.y):
+            if (self.x - target_x > 0):
+                incr = -1
+            else:
+                incr = 1
+            for x in range(self.x + incr, target_x, incr):
+                if (isinstance(board[x][self.y], Figure)):
+                    return False
+            if (not isinstance(target_fig, Figure)):
+                return True
+            elif (self.color == target_fig.color):
+                return False
+
+            board[target_x][target_y] = EmptyFig(target_x, target_y)
+            return True
+        if (self.color == board[target_x][target_y].color):
+            return False
+        if (abs(self.x - target_x) == abs(self.y - target_y)):
+
+            if (self.x > target_x):
+                if (self.y > target_y):
+                    toX = range(self.x - 1, target_x, -1)
+                    toY = range(self.y - 1, target_y, -1)
+
+                if (self.y < target_y):
+                    toX = range(self.x - 1, target_x, -1)
+                    toY = range(self.y + 1, target_y, 1)
+            if (self.x < target_x):
+                if (self.y > target_y):
+                    toX = range(self.x + 1, target_x, 1)
+                    toY = range(self.y - 1, target_y, -1)
+
+                if (self.y < target_y):
+                    toX = range(self.x + 1, target_x, 1)
+                    toY = range(self.y + 1, target_y, 1)
+
+            for xy in range(0, abs(self.x - target_x) - 1):
+                print(xy)
+                print(toX[xy], toY[xy])
+                if (isinstance(board[toX[xy]][toY[xy]], Figure)):
+                    return False
+            return True
         return False
 
 
@@ -204,7 +264,8 @@ class King(Figure):
         super(King, self).__init__(x, y, color)
 
     def check_move_possible(self, target_x, target_y):
-        return False
+
+        return (abs(self.x-target_x)<=1 and abs(self.y-target_y)<=1 and not (self.x == target_x and self.y ==target_y))
 
 
 class Bishop(Figure):
