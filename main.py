@@ -27,7 +27,9 @@ def switch_turn():
 
         """takes a board and a color as input and return True if that color is in check in that board"""
 def in_check(color, tempBoard):
-    return is_field_attacked(color, tempBoard, find_king(color))
+    print(tempBoard)
+    x,y = find_king(color, tempBoard)
+    return is_field_attacked(color, tempBoard, x,y)
 
 def is_field_attacked(color, tempBoard, x,y):
     if color == "white":
@@ -39,15 +41,15 @@ def is_field_attacked(color, tempBoard, x,y):
         for fig in line:
             if isinstance(fig, Figure):
                 if fig.color == oponant_color:
-                    if(fig.check_move_possible(x,y)):
+                    if(fig.check_move_possible(x,y, tempBoard)):
                         print(fig, fig.color)
                         return True
 
     return False
 
 
-def find_king(color):
-    for line in board:
+def find_king(color, tmp_board):
+    for line in tmp_board:
         for fig in line:
             if isinstance(fig, King) and fig.color == color:
                 return fig.x, fig.y
@@ -67,7 +69,7 @@ def move(xy1):
 
         buffFig = board_temp[buff[0]][buff[1]]  # retrive object from buffer position
         if (isinstance(buffFig, Figure)):  # check that object that is to me moved is a Figure
-            if (buffFig.check_move_possible(xy1[0], xy1[1])):  # check that the move is possible using the pieces internal check move possible function
+            if (buffFig.check_move_possible(xy1[0], xy1[1], board_temp)):  # check that the move is possible using the pieces internal check move possible function
                 # set buff figs internal cordinates to the new position it is being moved to
 
                 buffFig.x = xy1[0]
@@ -78,16 +80,21 @@ def move(xy1):
                                                    buff[1])  # create new emptyFig and place where buff fig used to be
                   # refresh moved item
                 board_temp[xy1[0]][xy1[1]].refresh()
-                #if not in_check(turn,board_temp):
-                board = board_temp
-                switch_turn()
-                #else:
-                #    print(turn, " is in check after this move, so it is not possible")
+                print(board_temp)
+                if not in_check(turn,board_temp):
+                    board = board_temp
+                    switch_turn()
+                    show(board[buff[0]][buff[1]])
+                    show(board[xy1[0]][xy1[1]])
+                    buff = [9, 9]  # reset buffer
+                else:
+                    print(turn, " is in check after this move, so it is not possible")
 
-        show(board[buff[0]][buff[1]])
-        show(board[xy1[0]][xy1[1]])
+                    buff = [9,9]
 
-        buff = [9, 9]  # reset buffer
+
+
+
 
 
 
@@ -154,7 +161,7 @@ class Figure:
 
         self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
 
-    def check_move_possible(self, target_x, target_y):
+    def check_move_possible(self, target_x, target_y, board):
         return False
 
 
@@ -192,10 +199,10 @@ class Queen(Figure):
     def __init__(self, x, y, color):
         self.img_black = img_queen_black
         self.img_white = img_queen_white
-        print(self.__class__)
+
         super(Queen, self).__init__(x, y, color)
 
-    def check_move_possible(self, target_x, target_y):
+    def check_move_possible(self, target_x, target_y, board):
         if (target_x < 0 or target_x > 7 or target_y < 0 or target_y > 7):
             return False
         target_fig = board[target_x][target_y]
@@ -265,7 +272,7 @@ class King(Figure):
         self.img_white = img_king_white
         super(King, self).__init__(x, y, color)
 
-    def check_move_possible(self, target_x, target_y):
+    def check_move_possible(self, target_x, target_y, board):
 
         return (abs(self.x-target_x)<=1 and abs(self.y-target_y)<=1 and not (self.x == target_x and self.y ==target_y))
 
@@ -278,7 +285,7 @@ class Bishop(Figure):
 
         # self.pic = Label(frame, image=img_horse, width=img_x, height=img_y)
 
-    def check_move_possible(self, target_x, target_y):
+    def check_move_possible(self, target_x, target_y, board):
 
         if (self.color == board[target_x][target_y].color):
             return False
@@ -315,7 +322,7 @@ class Rook(Figure):
         self.img_black = img_rook_black
         super(Rook, self).__init__(x, y, color)
 
-    def check_move_possible(self, target_x, target_y):
+    def check_move_possible(self, target_x, target_y, board):
 
         if (target_x < 0 or target_x > 7 or target_y < 0 or target_y > 7):
             return False
@@ -361,7 +368,7 @@ class Horse(Figure):
         self.img_white = img_horse_white
         super(Horse, self).__init__(x, y, color)
 
-    def check_move_possible(self, target_x, target_y):
+    def check_move_possible(self, target_x, target_y, board):
 
         if ((abs(self.x - target_x) == 1 and abs(self.y - target_y) == 2) or (
                 abs(self.x - target_x) == 2 and abs(self.y - target_y) == 1)):
@@ -382,7 +389,7 @@ class Pawn(Figure):
         self.firstMove = True
         super(Pawn, self).__init__(x, y, color)
 
-    def check_move_possible(self, target_x, target_y):
+    def check_move_possible(self, target_x, target_y, board):
 
         if (board[target_x][target_y].color == self.color):
             return False
