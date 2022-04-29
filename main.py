@@ -16,6 +16,11 @@ turn = "white"
 """switchs the turn"""
 
 
+def switch_turn_non_global(t):
+    if (t == "white"):
+        return "black"
+    else:
+        return "white"
 
 
 def switch_turn():
@@ -30,6 +35,36 @@ def in_check(color, tempBoard):
 
     x,y = find_king(color, tempBoard)
     return is_field_attacked(color, tempBoard, x,y)
+
+
+def exists_possible_moves_without_check(fig, tempBoard):
+    for x in range(0,7):
+        for y in range(0,7):
+            if fig.check_move_possible(x,y,tempBoard):
+                temptempBoard = copy_of_board(tempBoard)
+                tempFig = decompress(fig.compress())
+                print(tempFig)
+                temptempBoard[x][y] = tempFig
+                temptempBoard[fig.x][fig.y] = EmptyFig(tempFig.x, tempFig.y)
+                temptempBoard[x][y].x = x
+                temptempBoard[x][y].y = y
+                printBoard(temptempBoard)
+                if not in_check(fig.color, temptempBoard):
+                    return True
+    return False
+
+
+
+
+def is_mate(color, tempBoard):
+    for line in tempBoard:
+        for fig in line:
+            if fig.color == color:
+                if(exists_possible_moves_without_check(fig, tempBoard)):
+                    return False
+    return True
+
+
 
 def is_field_attacked(color, tempBoard, x,y):
     if color == "white":
@@ -52,6 +87,9 @@ def find_king(color, tmp_board):
         for fig in line:
             if isinstance(fig, King) and fig.color == color:
                 return fig.x, fig.y
+    else:
+        print(color)
+        printBoard(tmp_board)
 
 def printBoard(board):
     for line in board:
@@ -70,6 +108,8 @@ def move(xy1):
             if (buffFig.check_move_possible(xy1[0], xy1[1], board_temp)):  # check that the move is possible using the pieces internal check move possible function
                 # set buff figs internal cordinates to the new position it is being moved to
 
+
+
                 buffFig.x = xy1[0]
                 buffFig.y = xy1[1]
 
@@ -87,9 +127,12 @@ def move(xy1):
                     switch_turn()
                     show(board[buff[0]][buff[1]])
                     show(board[xy1[0]][xy1[1]])
+
                     buff = [9, 9]  # reset buffer
                     printBoard(board)
                 else:
+
+
                     print(turn, " is in check after this move, so it is not possible")
                     buff = [9,9]
         buff = [9,9]
@@ -108,7 +151,8 @@ def move(xy1):
             buff = [9, 9]  # reset buffer if click on oponant first
     else:
         buff = [9, 9]  # safty catch
-
+    if in_check((turn), board_temp) and is_mate((turn),board_temp):
+        print("mate !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 
 def copy_of_board(b):
@@ -261,8 +305,6 @@ class Queen(Figure):
                     toY = range(self.y + 1, target_y, 1)
 
             for xy in range(0, abs(self.x - target_x) - 1):
-                print(xy)
-                print(toX[xy], toY[xy])
                 if (isinstance(board[toX[xy]][toY[xy]], Figure)):
                     return False
             return True
@@ -318,8 +360,6 @@ class Bishop(Figure):
                     toY = range(self.y + 1, target_y, 1)
 
             for xy in range(0, abs(self.x - target_x) - 1):
-                print(xy)
-                print(toX[xy], toY[xy])
                 if (isinstance(board[toX[xy]][toY[xy]], Figure)):
                     return False
             return True
@@ -466,13 +506,7 @@ class Pawn(Figure):
                     self.y + 1 == target_y and self.x + 1 == target_x)) and isinstance(board[target_x][target_y],
                                                                                        Figure)):
                 return True
-        #Check en-passent:
-        if(isinstance(curr_figure, Pawn)):
-            #fuer weiss:
-            if(self.color=="white" and self.x==3 and curr_figure.x==3 and abs(self.y-curr_figure.y)==1 and target_x==2 and target_y==curr_figure.y):
-                return True
-            if(self.color=="black" and self.x==6 and curr_figure.x==6 and abs(self.y-curr_figure.y)==1 and target_x==5 and target_y==curr_figure.y):
-                return True
+
         return False
 
 
