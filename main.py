@@ -1,9 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 from PIL import ImageTk, Image, ImageOps
-
 import tkinter as tk
-
+from copy import deepcopy
 # globals
 img_x = 100
 img_y = 100
@@ -17,12 +16,34 @@ turn = "white"
 """switchs the turn"""
 
 
+
+
 def switch_turn():
     global turn
     if (turn == "white"):
         turn = "black"
     else:
         turn = "white"
+
+        """takes a board and a color as input and return True if that color is in check in that board"""
+def in_check(color, tempBoard):
+    return is_field_attacked(color, tempBoard, find_king(color))
+
+def is_field_attacked(color, tempBoard, x,y):
+    if color == "white":
+        oponant_color = "black"
+    else:
+        oponant_color = "white"
+
+    for line in tempBoard:
+        for fig in line:
+            if isinstance(fig, Figure):
+                if fig.color == oponant_color:
+                    if(fig.check_move_possible(x,y)):
+                        print(fig, fig.color)
+                        return True
+
+    return False
 
 
 def find_king(color):
@@ -32,27 +53,37 @@ def find_king(color):
                 return fig.x, fig.y
 
 
+
+
+
 def move(xy1):
     global turn
     global buff
+    global board
     # print(xy1)
     # print("x: ", board[xy1[0]][xy1[1]].x, "y: ", board[xy1[0]][xy1[1]].y)
-
+    board_temp = board
     if (buff != [9, 9] and buff != xy1):  # check if buff is not empty and not equal to new input
 
-        buffFig = board[buff[0]][buff[1]]  # retrive object from buffer position
+        buffFig = board_temp[buff[0]][buff[1]]  # retrive object from buffer position
         if (isinstance(buffFig, Figure)):  # check that object that is to me moved is a Figure
             if (buffFig.check_move_possible(xy1[0], xy1[1])):  # check that the move is possible using the pieces internal check move possible function
                 # set buff figs internal cordinates to the new position it is being moved to
                 buffFig.x = xy1[0]
                 buffFig.y = xy1[1]
 
-                board[xy1[0]][xy1[1]] = buffFig  # write buffFig over newFig in global board array
-                board[buff[0]][buff[1]] = EmptyFig(buff[0],
+                board_temp[xy1[0]][xy1[1]] = buffFig  # write buffFig over newFig in global board array
+                board_temp[buff[0]][buff[1]] = EmptyFig(buff[0],
                                                    buff[1])  # create new emptyFig and place where buff fig used to be
-                board[xy1[0]][xy1[1]].refresh()  # refresh moved item
+                  # refresh moved item
 
-                switch_turn()
+                if not in_check(turn,board_temp):
+                    board = board_temp
+                    switch_turn()
+                else:
+                    print(turn, " is in check after this move, so it is not possible")
+                board[xy1[0]][xy1[1]].refresh()
+
 
         buff = [9, 9]  # reset buffer
 
@@ -70,6 +101,36 @@ def move(xy1):
 
         # for line in board:
     #    print(line)
+
+def copy_of_board(b):
+    return decompress_board(compress_board(b))
+
+def compress_board(b):
+    compressed_b = []
+    for line in b:
+        l = []
+        for fig in line:
+            l.append(fig.compress())
+        compressed_b.append(l)
+    return compressed_b
+
+
+def decompress_board(b_compressed):
+    decompresed_b = []
+    for line in b_compressed:
+        l = []
+        for compressed_fig in line:
+            l.append(decompress(compressed_fig))
+        decompresed_b.append(l)
+    return decompresed_b
+
+
+def decompress(compressed_fig):
+    fig_class = compressed_fig[0]
+    return fig_class(compressed_fig[1],compressed_fig[2], compressed_fig[3])
+
+
+
 
 
 class Figure:
@@ -89,6 +150,14 @@ class Figure:
 
         self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
 
+    def check_move_possible(self, target_x, target_y):
+        return False
+
+
+    def compress(self):
+        return [deepcopy(type(self)), deepcopy(self.x), deepcopy(self.y),deepcopy(self.color)]
+
+
 
 class EmptyFig():
     def __init__(self, x, y):
@@ -98,9 +167,18 @@ class EmptyFig():
         self.color = "Empty"
         self.refresh()
 
+    def __int__(self, x, y, color):
+        self.x = x
+        self.y = y
+        self.color = "Empty"
+        self.refresh()
+
     def refresh(self):
         a = lambda: move([self.x, self.y])
         self.pic = tk.Button(frame, image=img_white, width=img_x, height=img_y, command=a)
+
+    def compress(self):
+        return [type(self), self.x, self.y, self.color]
 
     def __repr__(self):
         return "empty"
@@ -110,10 +188,11 @@ class Queen(Figure):
     def __init__(self, x, y, color):
         self.img_black = img_queen_black
         self.img_white = img_queen_white
+        print(self.__class__)
         super(Queen, self).__init__(x, y, color)
 
     def check_move_possible(self, target_x, target_y):
-        return True
+        return False
 
 
 class King(Figure):
@@ -123,7 +202,7 @@ class King(Figure):
         super(King, self).__init__(x, y, color)
 
     def check_move_possible(self, target_x, target_y):
-        return True
+        return False
 
 
 class Bishop(Figure):
@@ -375,6 +454,7 @@ if __name__ == '__main__':
             line.append(fig)
 
         board.append(line)
+    print(compress_board(board))
 
     show(board)
 
