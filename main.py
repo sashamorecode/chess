@@ -81,17 +81,21 @@ def move(xy1):
                   # refresh moved item
                 board_temp[xy1[0]][xy1[1]].refresh()
                 print(board_temp)
+
                 if not in_check(turn,board_temp):
+                    # Figur wird gezogen:
+
                     board = board_temp
                     switch_turn()
                     show(board[buff[0]][buff[1]])
                     show(board[xy1[0]][xy1[1]])
+
                     buff = [9, 9]  # reset buffer
                 else:
                     print(turn, " is in check after this move, so it is not possible")
 
                     buff = [9,9]
-
+        buff = [9,9]
 
 
 
@@ -274,7 +278,7 @@ class King(Figure):
 
     def check_move_possible(self, target_x, target_y, board):
 
-        return (abs(self.x-target_x)<=1 and abs(self.y-target_y)<=1 and not (self.x == target_x and self.y ==target_y))
+        return (abs(self.x-target_x)<=1 and abs(self.y-target_y)<=1 and not (self.x == target_x and self.y ==target_y) and self.color != board[target_x][target_y].color)
 
 
 class Bishop(Figure):
@@ -389,6 +393,20 @@ class Pawn(Figure):
         self.firstMove = True
         super(Pawn, self).__init__(x, y, color)
 
+    #Prueft ob Bauer zu Dame wird:
+    def refresh(self):
+        if(self.color=="white" and self.x==0):
+            fig = Queen(self.x, self.y, "white")
+            board[self.x][self.y] = fig
+            show(fig)
+        elif(self.color=="black" and self.x==7):
+            fig = Queen(self.x, self.y, "black")
+            board[self.x][self.y] = fig
+            show(fig)
+        else:
+            super(Pawn, self).refresh()
+
+
     def check_move_possible(self, target_x, target_y, board):
 
         if (board[target_x][target_y].color == self.color):
@@ -408,8 +426,8 @@ class Pawn(Figure):
                     return False
                 return True
 
-        if (self.firstMove):
-            self.firstMove = False
+        if ((self.color=="white" and self.x == 6) or (self.color=="black" and self.x == 1)):
+
             if (target_y == self.y):
 
                 if (target_x == self.x - 2 and self.color == "white" and not isinstance(board[self.x - 1][self.y],
