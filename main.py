@@ -4,6 +4,9 @@ from tkinter import ttk
 from PIL import ImageTk, Image, ImageOps
 
 import tkinter as tk
+
+
+#globals
 img_x = 100
 img_y = 100
 
@@ -11,6 +14,9 @@ img_y = 100
 buff = [9,9]
 
 turn = "white"
+#global end
+
+"""switchs the turn"""
 def switch_turn():
     global turn
     if(turn == "white"):
@@ -22,25 +28,24 @@ def switch_turn():
 
 
 def move(xy1):
-
-
-
     global turn
     global buff
     #print(xy1)
     #print("x: ", board[xy1[0]][xy1[1]].x, "y: ", board[xy1[0]][xy1[1]].y)
 
-    if(buff != [9,9] and buff != xy1):
+    if(buff != [9,9] and buff != xy1): #check if buff is not empty and not equal to new input
 
 
-        buffFig = board[buff[0]][buff[1]]
-        if(isinstance(buffFig, Figure)):
-            if(buffFig.check_move_possible(xy1[0], xy1[1])):
+        buffFig = board[buff[0]][buff[1]] # retrive object from buffer position
+        if(isinstance(buffFig, Figure)): # check that object that is to me moved is a Figure
+            if(buffFig.check_move_possible(xy1[0], xy1[1])): # check that the move is possible using the pieces internal check move possible function
+                #set buff figs internal cordinates to the new position it is being moved to
                 buffFig.x = xy1[0]
                 buffFig.y = xy1[1]
-                board[xy1[0]][xy1[1]] = buffFig
-                board[buff[0]][buff[1]] = EmptyFig(buff[0], buff[1])
-                board[xy1[0]][xy1[1]].refresh()
+
+                board[xy1[0]][xy1[1]] = buffFig # write buffFig over newFig in global board array
+                board[buff[0]][buff[1]] = EmptyFig(buff[0], buff[1]) # create new emptyFig and place where buff fig used to be
+                board[xy1[0]][xy1[1]].refresh() # refresh moved item
 
 
                 switch_turn()
@@ -48,21 +53,21 @@ def move(xy1):
 
 
 
-        buff = [9,9]
+        buff = [9,9] # reset buffer
 
 
 
         show(board)
 
-    elif(buff == xy1):
+    elif(buff == xy1): # reset buffer if click same objet twice
         buff = [9,9]
     elif(isinstance(board[xy1[0]][xy1[1]],Figure)):
-        if(board[xy1[0]][xy1[1]].color == turn):
+        if(board[xy1[0]][xy1[1]].color == turn): # write new input into buffer if click on own color
             buff = xy1
         else:
-            buff = [9,9]
+            buff = [9,9] # reset buffer if click on oponant first
     else:
-        buff = [9,9]
+        buff = [9,9] # safty catch
 
 
         #for line in board:
@@ -101,8 +106,16 @@ class EmptyFig():
     def __repr__(self):
         return "empty"
 
+class Queen(Figure):
+    def __init__(self,x,y,color):
+        self.img_black = img_queen_black
+        self.img_white = img_queen_white
+        super(Queen, self).__init__(x,y,color)
+
+    def check_move_possible(self, target_x, target_y):
+        return True
 class King(Figure):
-    def __init__(self):
+    def __init__(self,x,y,color):
         self.img_black = img_king_black
         self.img_white = img_king_white
         super(King, self).__init__(x,y,color)
@@ -330,6 +343,10 @@ if __name__ == '__main__':
                     fig = Horse(x,y, "white")
                 elif y in [2,5]:
                     fig = Bishop(x,y,"white")
+                elif y in [3]:
+                    fig = Queen(x,y,"white")
+                elif y == 4:
+                    fig = King(x,y,"white")
                 else:
                     fig = Rook(x,y, "white")
             elif x in [0]:
@@ -337,6 +354,10 @@ if __name__ == '__main__':
                     fig = Horse(x,y, "black")
                 elif y in [2,5]:
                     fig = Bishop(x,y,"black")
+                elif y in [3]:
+                    fig = Queen(x,y,"black")
+                elif y == 4:
+                    fig = King(x,y,"black")
                 else:
 
                     fig = Rook(x,y,"black")
