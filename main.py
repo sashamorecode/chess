@@ -69,9 +69,21 @@ def move(xy1):
     #    print(line)
 
 class Figure:
-    def __init__(self, x, y):
+    def __init__(self, x, y, color):
         self.x = x
         self.y = y
+        self.color = color
+        self.refresh()
+
+    def refresh(self):
+        a = lambda: move([self.x, self.y])
+
+        if (self.color == "black"):
+            img = self.img_black
+        else:
+            img = self.img_white
+
+        self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
 
 
 class EmptyFig():
@@ -89,22 +101,21 @@ class EmptyFig():
     def __repr__(self):
         return "empty"
 
+class King(Figure):
+    def __init__(self):
+        self.img_black = img_king_black
+        self.img_white = img_king_white
+        super(King, self).__init__(x,y,color)
+    def check_move_possible(self, target_x, target_y):
+        return True
+
 class Bishop(Figure):
     def __init__(self, x, y, color):
-        self.x = x
-        self.y = y
-        self.color = color
-        self.refresh()
+        self.img_black = img_bishop_black
+        self.img_white = img_bishop_white
+        super(Bishop, self).__init__(x,y,color)
+
         # self.pic = Label(frame, image=img_horse, width=img_x, height=img_y)
-    def refresh(self):
-        a = lambda: move([self.x, self.y])
-
-        if (self.color == "black"):
-            img = img_bishop_black
-        else:
-            img = img_bishop_white
-
-        self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
 
 
     def check_move_possible(self, target_x, target_y):
@@ -140,20 +151,10 @@ class Bishop(Figure):
 
 class Rook(Figure):
     def __init__(self, x, y, color):
-        self.x = x
-        self.y = y
-        self.color = color
-        self.refresh()
-        # self.pic = Label(frame, image=img_horse, width=img_x, height=img_y)
-    def refresh(self):
-        a = lambda: move([self.x, self.y])
+        self.img_white = img_rook_white
+        self.img_black = img_rook_black
+        super(Rook, self).__init__(x,y,color)
 
-        if (self.color == "black"):
-            img = img_rook_black
-        else:
-            img = img_rook_white
-
-        self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
 
 
     def check_move_possible(self, target_x, target_y):
@@ -197,24 +198,9 @@ class Rook(Figure):
 
 class Horse(Figure):
     def __init__(self,x,y, color):
-        self.x = x
-        self.y = y
-        self.color = color
-
-        #self.pic = Label(frame, image=img_horse, width=img_x, height=img_y)
-
-
-        self.refresh()
-
-    def refresh(self):
-        a = lambda: move([self.x, self.y])
-        if (self.color == "black"):
-            img = img_horse_black
-        else:
-            img = img_horse_white
-
-        self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
-
+        self.img_black = img_horse_black
+        self.img_white = img_horse_white
+        super(Horse, self).__init__(x,y,color)
 
     def check_move_possible(self, target_x, target_y):
 
@@ -230,21 +216,10 @@ class Horse(Figure):
 class Pawn(Figure):
     def __init__(self, x, y, color):
         # self.pic = Label(frame, image=img_white, width=img_x, height=img_y)
-        self.color = color
-        self.x = x
-        self.y = y
+        self.img_white = img_pawn_white
+        self.img_black = img_pawn_black
         self.firstMove = True
-        self.refresh()
-
-    def refresh(self):
-        a = lambda: move([self.x, self.y])
-        if (self.color == "black"):
-            img = img_pawn_black
-        else:
-            img = img_pawn_white
-
-        self.pic = tk.Button(frame, image=img, width=img_x, height=img_y, command=a)
-
+        super(Pawn, self).__init__(x,y,color)
 
     def check_move_possible(self, target_x, target_y):
 
@@ -338,8 +313,8 @@ if __name__ == '__main__':
 
     img_bishop_white, img_bishop_black = loadImg("bishop_w.jpg")
 
-    img_queen_white, img_queen_black = loadImg("queen_w.jpg0")
-    img_king_white, img_queen_black = loadImg("king_w.jpg")
+    img_queen_white, img_queen_black = loadImg("queen_w.jpg")
+    img_king_white, img_king_black = loadImg("king_w.jpg")
     #board = [[None] * 8]*8
     board = []
 
