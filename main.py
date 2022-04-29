@@ -7,7 +7,7 @@ from copy import deepcopy
 img_x = 100
 img_y = 100
 board = []
-
+curr_figure = None
 buff = [9, 9]
 
 turn = "white"
@@ -27,7 +27,7 @@ def switch_turn():
 
         """takes a board and a color as input and return True if that color is in check in that board"""
 def in_check(color, tempBoard):
-    print(tempBoard)
+
     x,y = find_king(color, tempBoard)
     return is_field_attacked(color, tempBoard, x,y)
 
@@ -42,7 +42,6 @@ def is_field_attacked(color, tempBoard, x,y):
             if isinstance(fig, Figure):
                 if fig.color == oponant_color:
                     if(fig.check_move_possible(x,y, tempBoard)):
-                        print(fig, fig.color)
                         return True
 
     return False
@@ -54,16 +53,15 @@ def find_king(color, tmp_board):
             if isinstance(fig, King) and fig.color == color:
                 return fig.x, fig.y
 
-
-
-
+def printBoard(board):
+    for line in board:
+        print(line)
 
 def move(xy1):
     global turn
     global buff
     global board
-    # print(xy1)
-    # print("x: ", board[xy1[0]][xy1[1]].x, "y: ", board[xy1[0]][xy1[1]].y)
+
     board_temp = copy_of_board(board)
     if (buff != [9, 9] and buff != xy1):  # check if buff is not empty and not equal to new input
 
@@ -80,20 +78,19 @@ def move(xy1):
                                                    buff[1])  # create new emptyFig and place where buff fig used to be
                   # refresh moved item
                 board_temp[xy1[0]][xy1[1]].refresh()
-                print(board_temp)
+
 
                 if not in_check(turn,board_temp):
                     # Figur wird gezogen:
-
+                    curr_figure = buffFig
                     board = board_temp
                     switch_turn()
                     show(board[buff[0]][buff[1]])
                     show(board[xy1[0]][xy1[1]])
-
                     buff = [9, 9]  # reset buffer
+                    printBoard(board)
                 else:
                     print(turn, " is in check after this move, so it is not possible")
-
                     buff = [9,9]
         buff = [9,9]
 
@@ -102,7 +99,7 @@ def move(xy1):
 
 
 
-    elif (buff == xy1):  # reset buffer if click same objet twice
+    elif(buff == xy1):  # reset buffer if click same objet twice
         buff = [9, 9]
     elif (isinstance(board[xy1[0]][xy1[1]], Figure)):
         if (board[xy1[0]][xy1[1]].color == turn):  # write new input into buffer if click on own color
@@ -112,8 +109,7 @@ def move(xy1):
     else:
         buff = [9, 9]  # safty catch
 
-        # for line in board:
-    #    print(line)
+
 
 def copy_of_board(b):
     return decompress_board(compress_board(b))
@@ -196,7 +192,7 @@ class EmptyFig():
         return [type(self), self.x, self.y, self.color]
 
     def __repr__(self):
-        return "empty"
+        return "empty "
 
 
 class Queen(Figure):
@@ -205,6 +201,9 @@ class Queen(Figure):
         self.img_white = img_queen_white
 
         super(Queen, self).__init__(x, y, color)
+
+    def __repr__(self):
+        return "Queen "
 
     def check_move_possible(self, target_x, target_y, board):
         if (target_x < 0 or target_x > 7 or target_y < 0 or target_y > 7):
@@ -276,6 +275,9 @@ class King(Figure):
         self.img_white = img_king_white
         super(King, self).__init__(x, y, color)
 
+    def __repr__(self):
+        return " King "
+
     def check_move_possible(self, target_x, target_y, board):
 
         return (abs(self.x-target_x)<=1 and abs(self.y-target_y)<=1 and not (self.x == target_x and self.y ==target_y) and self.color != board[target_x][target_y].color)
@@ -288,6 +290,9 @@ class Bishop(Figure):
         super(Bishop, self).__init__(x, y, color)
 
         # self.pic = Label(frame, image=img_horse, width=img_x, height=img_y)
+
+    def __repr__(self):
+        return "Bishop"
 
     def check_move_possible(self, target_x, target_y, board):
 
@@ -325,6 +330,9 @@ class Rook(Figure):
         self.img_white = img_rook_white
         self.img_black = img_rook_black
         super(Rook, self).__init__(x, y, color)
+
+    def __repr__(self):
+        return " Rook "
 
     def check_move_possible(self, target_x, target_y, board):
 
@@ -372,6 +380,9 @@ class Horse(Figure):
         self.img_white = img_horse_white
         super(Horse, self).__init__(x, y, color)
 
+    def __repr__(self):
+        return "Horse"
+
     def check_move_possible(self, target_x, target_y, board):
 
         if ((abs(self.x - target_x) == 1 and abs(self.y - target_y) == 2) or (
@@ -392,6 +403,9 @@ class Pawn(Figure):
         self.img_black = img_pawn_black
         self.firstMove = True
         super(Pawn, self).__init__(x, y, color)
+
+    def __repr__(self):
+        return " Pawn "
 
     #Prueft ob Bauer zu Dame wird:
     def refresh(self):
@@ -451,6 +465,13 @@ class Pawn(Figure):
             if (((self.y - 1 == target_y and self.x + 1 == target_x) or (
                     self.y + 1 == target_y and self.x + 1 == target_x)) and isinstance(board[target_x][target_y],
                                                                                        Figure)):
+                return True
+        #Check en-passent:
+        if(isinstance(curr_figure, Pawn)):
+            #fuer weiss:
+            if(self.color=="white" and self.x==3 and curr_figure.x==3 and abs(self.y-curr_figure.y)==1 and target_x==2 and target_y==curr_figure.y):
+                return True
+            if(self.color=="black" and self.x==6 and curr_figure.x==6 and abs(self.y-curr_figure.y)==1 and target_x==5 and target_y==curr_figure.y):
                 return True
         return False
 
@@ -546,7 +567,7 @@ if __name__ == '__main__':
             line.append(fig)
 
         board.append(line)
-    print(compress_board(board))
+
 
     showAll(board)
 
