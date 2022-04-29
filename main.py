@@ -31,37 +31,48 @@ def switch_turn():
         turn = "white"
 
         """takes a board and a color as input and return True if that color is in check in that board"""
+
 def in_check(color, tempBoard):
 
     x,y = find_king(color, tempBoard)
     return is_field_attacked(color, tempBoard, x,y)
 
 
-def exists_possible_moves_without_check(fig, tempBoard):
+
+def exists_possible_moves_without_check(fig, tempBoard, king_x, king_y):
+    fig_x = fig.x
+    fig_y = fig.y
     for x in range(0,7):
         for y in range(0,7):
-            if fig.check_move_possible(x,y,tempBoard):
-                temptempBoard = copy_of_board(tempBoard)
-                tempFig = decompress(fig.compress())
-                print(tempFig)
-                temptempBoard[x][y] = tempFig
-                temptempBoard[fig.x][fig.y] = EmptyFig(tempFig.x, tempFig.y)
-                temptempBoard[x][y].x = x
-                temptempBoard[x][y].y = y
-                printBoard(temptempBoard)
-                if not in_check(fig.color, temptempBoard):
-                    return True
+            if(fig.x != x and fig.y != y):
+                if(x != king_x and y != king_y):
+                    if fig.color != tempBoard[x][y]:
+                        if fig.check_move_possible(x,y,tempBoard):
+                            temptempBoard = copy_of_board(tempBoard)
+
+                            tempFig = decompress(fig.compress())
+                            tempFig.x = x
+                            tempFig.y = y
+
+                            temptempBoard[x][y] = tempFig  # write buffFig over newFig in global board array
+                            temptempBoard[fig_x][fig_y] = EmptyFig(fig_x,fig_y)
+                            printBoard(temptempBoard)
+                            if not is_field_attacked(fig.color, tempBoard, king_x,king_y):
+                                return True
     return False
 
 
 
 
-def is_mate(color, tempBoard):
+def is_mate(color, Board, king_x, king_y):
+    tempBoard = copy_of_board(Board)
     for line in tempBoard:
         for fig in line:
-            if fig.color == color:
-                if(exists_possible_moves_without_check(fig, tempBoard)):
-                    return False
+            if isinstance(fig, Figure):
+                if fig.color == color:
+                    if(exists_possible_moves_without_check(fig, tempBoard, king_x, king_y)):
+
+                        return False
     return True
 
 
@@ -87,19 +98,19 @@ def find_king(color, tmp_board):
         for fig in line:
             if isinstance(fig, King) and fig.color == color:
                 return fig.x, fig.y
-    else:
-        print(color)
-        printBoard(tmp_board)
+
+    print(color)
+    printBoard(tmp_board)
 
 def printBoard(board):
     for line in board:
         print(line)
 
 def move(xy1):
+
     global turn
     global buff
     global board
-
     board_temp = copy_of_board(board)
     if (buff != [9, 9] and buff != xy1):  # check if buff is not empty and not equal to new input
 
@@ -114,8 +125,9 @@ def move(xy1):
                 buffFig.y = xy1[1]
 
                 board_temp[xy1[0]][xy1[1]] = buffFig  # write buffFig over newFig in global board array
-                board_temp[buff[0]][buff[1]] = EmptyFig(buff[0],
-                                                   buff[1])  # create new emptyFig and place where buff fig used to be
+                king_x, king_y = find_king(turn, board)
+                if not isinstance(board_temp[buff[0]][buff[1]], King):
+                    board_temp[buff[0]][buff[1]] = EmptyFig(buff[0], buff[1])  # create new emptyFig and place where buff fig used to be
                   # refresh moved item
                 board_temp[xy1[0]][xy1[1]].refresh()
 
@@ -130,6 +142,10 @@ def move(xy1):
 
                     buff = [9, 9]  # reset buffer
                     printBoard(board)
+                    if in_check(turn, board):
+                        king_x, king_y = find_king(turn, board)
+                        if is_mate(turn, board, king_x, king_y):
+                            print("mate !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 else:
 
 
@@ -151,8 +167,9 @@ def move(xy1):
             buff = [9, 9]  # reset buffer if click on oponant first
     else:
         buff = [9, 9]  # safty catch
-    if in_check((turn), board_temp) and is_mate((turn),board_temp):
-        print("mate !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
+
+
 
 
 def copy_of_board(b):
