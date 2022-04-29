@@ -62,7 +62,7 @@ def move(xy1):
     global board
     # print(xy1)
     # print("x: ", board[xy1[0]][xy1[1]].x, "y: ", board[xy1[0]][xy1[1]].y)
-    board_temp = board
+    board_temp = copy_of_board(board)
     if (buff != [9, 9] and buff != xy1):  # check if buff is not empty and not equal to new input
 
         buffFig = board_temp[buff[0]][buff[1]]  # retrive object from buffer position
@@ -76,18 +76,18 @@ def move(xy1):
                 board_temp[buff[0]][buff[1]] = EmptyFig(buff[0],
                                                    buff[1])  # create new emptyFig and place where buff fig used to be
                   # refresh moved item
+                board_temp[xy1[0]][xy1[1]].refresh()
+                #if not in_check(turn,board_temp):
+                board = board_temp
+                switch_turn()
+                #else:
+                #    print(turn, " is in check after this move, so it is not possible")
 
-                if not in_check(turn,board_temp):
-                    board = board_temp
-                    switch_turn()
-                else:
-                    print(turn, " is in check after this move, so it is not possible")
-                board[xy1[0]][xy1[1]].refresh()
 
 
         buff = [9, 9]  # reset buffer
 
-        show(board)
+        showAll(board)
 
     elif (buff == xy1):  # reset buffer if click same objet twice
         buff = [9, 9]
@@ -127,6 +127,8 @@ def decompress_board(b_compressed):
 
 def decompress(compressed_fig):
     fig_class = compressed_fig[0]
+    if fig_class == EmptyFig:
+        return EmptyFig(compressed_fig[1], compressed_fig[2])
     return fig_class(compressed_fig[1],compressed_fig[2], compressed_fig[3])
 
 
@@ -365,10 +367,13 @@ class Pawn(Figure):
         return False
 
 
-def show(board):
-    i = 0
-    j = 0
+def show(board, target_x, target_y):
+    #i = 0
+    board[target_x][target_y].pic.grid(row=target_x, column=target_y)
 
+
+def showAll(board):
+    i =0
     for line in board:
         i += 1
         j = 0
@@ -376,7 +381,6 @@ def show(board):
             j += 1
             # fig.refresh()
             fig.pic.grid(row=i, column=j)
-
 
 def loadImg(img):
     img_horse_white = (Image.open(img))
@@ -456,6 +460,6 @@ if __name__ == '__main__':
         board.append(line)
     print(compress_board(board))
 
-    show(board)
+    showAll(board)
 
     root.mainloop()
