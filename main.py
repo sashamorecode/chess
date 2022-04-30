@@ -51,6 +51,7 @@ def is_field_attacked(color, tempBoard, x,y):
             if isinstance(fig, Figure):
                 if fig.color == oponant_color:
                     if(fig.check_move_possible(x,y, tempBoard)):
+                        print("Die Figur: ", fig, "auf Position x: ", fig.x, " y: ", fig.y, " gibt Schach auf Pos x: ", x, " y: ", y)
                         return True
 
     return False
@@ -88,7 +89,7 @@ def move(xy1):
                 #check enpassent:
                 if(isinstance(buffFig, Pawn) and abs(xy1[0]-buffFig.x)==1 and abs(xy1[1]-buffFig.y)==1 and isinstance(board_temp[xy1[0]][xy1[1]], EmptyFig)):
                     if(buffFig.color=="white"):
-                        board_temp[xy1[0]+1][xy1[1]]= EmptyFig(xy1[0]+1, xy1[1])
+                        board_temp[xy1[0]+1][xy1[1]] = EmptyFig(xy1[0]+1, xy1[1])
                         board_temp[xy1[0] + 1][xy1[1]].refresh()
                         en_passent = True
                         print("x: ", xy1[0]+1, "y: ", xy1[1])
@@ -98,10 +99,10 @@ def move(xy1):
                     #koenig nach links:
                 if(isinstance(buffFig, King)):
                     if(buffFig.y-xy1[1]==2):
-                        temp_board = swapPos(buffFig.x, buffFig.y+1, buffFig.x, 0, board_temp)
+                        temp_board = swapPos(buffFig.x, buffFig.y-1, buffFig.x, 0, board_temp)
                         rochade = True
                     if(buffFig.y - xy1[1] == -2):
-                        temp_board = swapPos(buffFig.x, buffFig.y - 1, buffFig.x, 7, board_temp)
+                        temp_board = swapPos(buffFig.x, buffFig.y+1, buffFig.x, 7, board_temp)
                         rochade = True
 
 
@@ -144,8 +145,10 @@ def move(xy1):
                     if(rochade):
                         if(buffFig.y == 2):
                             show(board[buffFig.x][buffFig.y+1])
+                            show(board[buffFig.x][0])
                         if (buffFig.y == 6):
                             show(board[buffFig.x][buffFig.y - 1])
+                            show(board[buffFig.x][7])
                 else:
 
 
@@ -354,21 +357,21 @@ class King(Figure):
         if(self.color=="white" and king_white_virgin):
             #gucke ob Turm an richtiger Stelle (und Koening an richtiger Stelle)
             #kleine Rochade
-            if(isinstance(board[7][7], Rook)):
+            if(isinstance(board[7][7], Rook) and target_x== 7 and target_y==6):
                 if(isinstance(board[7][5], EmptyFig) and isinstance(board[7][6], EmptyFig)):
                     return True
             #große Rochade
-            if (isinstance(board[7][0], Rook)):
+            if (isinstance(board[7][0], Rook) and target_x == 7 and target_y == 2):
                 if (isinstance(board[7][3], EmptyFig) and isinstance(board[7][2], EmptyFig) and isinstance(board[7][1], EmptyFig)):
                     return True
-        if (self.color == "white" and king_white_virgin):
+        if (self.color == "black" and king_black_virgin):
             # gucke ob Turm an richtiger Stelle (und Koening an richtiger Stelle)
             # kleine Rochade
-            if (isinstance(board[0][7], Rook)):
+            if (isinstance(board[0][7], Rook) and target_x==0 and target_y==6):
                 if (isinstance(board[0][5], EmptyFig) and isinstance(board[0][6], EmptyFig)):
                     return True
             # große Rochade
-            if (isinstance(board[0][0], Rook)):
+            if (isinstance(board[0][0], Rook) and target_x==0 and target_y==2):
                 if (isinstance(board[0][3], EmptyFig) and isinstance(board[0][2], EmptyFig) and isinstance(board[0][1],
                                                                                                            EmptyFig)):
                     return True
