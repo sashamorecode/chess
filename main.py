@@ -17,7 +17,20 @@ turn = "white"
 
 """switchs the turn"""
 
+#Gibt die aktuelle Punkteverteilung des Boardes als int zurück (- = schwarz), möglicher Nutzen graphical output
+def get_score(loc_board):
+    res = 0
+    for line in loc_board:
+        for fig in line:
+            if(not isinstance(fig, EmptyFig)):
+                if(fig.color=="white"):
+                    res += fig.value
+                if(fig.color=="black"):
+                    res -=fig.value
+    return res
 
+
+"""switchs the turn"""
 def switch_turn_non_global(t):
     if (t == "white"):
         return "black"
@@ -140,6 +153,7 @@ def move(xy1):
                         show(board_temp[xy1[0]+1][xy1[1]])
                     buff = [9, 9]  # reset buffer
                     printBoard(board)
+                    print(get_score(board))  # gibt den Punktestand aus.
                     print(curr_figure, curr_figure.color, "x: ", curr_figure.x, "y: ", curr_figure.y)
                     #Zusatz Rochade:
                     if(rochade):
@@ -269,6 +283,7 @@ class EmptyFig():
 
 
 class Queen(Figure):
+    value = 9
     def __init__(self, x, y, color):
         self.img_black = img_queen_black
         self.img_white = img_queen_white
@@ -341,6 +356,7 @@ class Queen(Figure):
 
 
 class King(Figure):
+    value = 0
     def __init__(self, x, y, color):
         self.img_black = img_king_black
         self.img_white = img_king_white
@@ -382,6 +398,7 @@ class King(Figure):
 
         return False
 class Bishop(Figure):
+    value = 3
     def __init__(self, x, y, color):
         self.img_black = img_bishop_black
         self.img_white = img_bishop_white
@@ -422,6 +439,7 @@ class Bishop(Figure):
 
 
 class Rook(Figure):
+    value = 5
     def __init__(self, x, y, color):
         self.img_white = img_rook_white
         self.img_black = img_rook_black
@@ -471,6 +489,7 @@ class Rook(Figure):
 
 
 class Horse(Figure):
+    value = 3
     def __init__(self, x, y, color):
         self.img_black = img_horse_black
         self.img_white = img_horse_white
@@ -493,6 +512,7 @@ class Horse(Figure):
 
 
 class Pawn(Figure):
+    value = 1
     def __init__(self, x, y, color):
         # self.pic = Label(frame, image=img_white, width=img_x, height=img_y)
         self.img_white = img_pawn_white
@@ -504,6 +524,7 @@ class Pawn(Figure):
         return " Pawn "
 
     #Prueft ob Bauer zu Dame wird:
+    ####Board wird einen Zug zu spät aktualisiert????
     def refresh(self):
         if(self.color=="white" and self.x==0):
             fig = Queen(self.x, self.y, "white")
