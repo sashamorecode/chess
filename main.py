@@ -9,13 +9,28 @@ img_y = 100
 board = []
 curr_figure = None
 buff = [9, 9]
+king_white_virgin = True
+king_black_virgin = True
 
 turn = "white"
 # global end
 
 """switchs the turn"""
 
+#Gibt die aktuelle Punkteverteilung des Boardes als int zurück (- = schwarz), möglicher Nutzen graphical output
+def get_score(loc_board):
+    res = 0
+    for line in loc_board:
+        for fig in line:
+            if(not isinstance(fig, EmptyFig)):
+                if(fig.color=="white"):
+                    res += fig.value
+                if(fig.color=="black"):
+                    res -=fig.value
+    return res
 
+
+"""switchs the turn"""
 def switch_turn_non_global(t):
     if (t == "white"):
         return "black"
@@ -31,49 +46,10 @@ def switch_turn():
         turn = "white"
 
         """takes a board and a color as input and return True if that color is in check in that board"""
-
 def in_check(color, tempBoard):
 
     x,y = find_king(color, tempBoard)
     return is_field_attacked(color, tempBoard, x,y)
-
-
-
-def exists_possible_moves_without_check(fig, tempBoard, king_x, king_y):
-    fig_x = fig.x
-    fig_y = fig.y
-    for x in range(0,7):
-        for y in range(0,7):
-            if(fig.x != x and fig.y != y):
-                if(x != king_x and y != king_y):
-                    if fig.color != tempBoard[x][y]:
-                        if fig.check_move_possible(x,y,tempBoard):
-                            temptempBoard = copy_of_board(tempBoard)
-
-                            tempFig = decompress(fig.compress())
-                            tempFig.x = x
-                            tempFig.y = y
-
-                            temptempBoard[x][y] = tempFig  # write buffFig over newFig in global board array
-                            temptempBoard[fig_x][fig_y] = EmptyFig(fig_x,fig_y)
-                            printBoard(temptempBoard)
-                            if not is_field_attacked(fig.color, tempBoard, king_x,king_y):
-                                return True
-    return False
-
-
-
-
-def is_mate(color, Board, king_x, king_y):
-    tempBoard = copy_of_board(Board)
-    for line in tempBoard:
-        for fig in line:
-            if isinstance(fig, Figure):
-                if fig.color == color:
-                    if(exists_possible_moves_without_check(fig, tempBoard, king_x, king_y)):
-
-                        return False
-    return True
 
 
 
@@ -88,6 +64,7 @@ def is_field_attacked(color, tempBoard, x,y):
             if isinstance(fig, Figure):
                 if fig.color == oponant_color:
                     if(fig.check_move_possible(x,y, tempBoard)):
+                        print("Die Figur: ", fig, "auf Position x: ", fig.x, " y: ", fig.y, " gibt Schach auf Pos x: ", x, " y: ", y)
                         return True
 
     return False
@@ -107,45 +84,75 @@ def printBoard(board):
         print(line)
 
 def move(xy1):
-
     global turn
     global buff
     global board
+    global curr_figure
+    global king_white_virgin
+    global king_black_virgin
+    en_passent = False
+    rochade = False
+
     board_temp = copy_of_board(board)
     if (buff != [9, 9] and buff != xy1):  # check if buff is not empty and not equal to new input
 
         buffFig = board_temp[buff[0]][buff[1]]  # retrive object from buffer position
         if (isinstance(buffFig, Figure)):  # check that object that is to me moved is a Figure
             if (buffFig.check_move_possible(xy1[0], xy1[1], board_temp)):  # check that the move is possible using the pieces internal check move possible function
+                #check enpassent:
+                if(isinstance(buffFig, Pawn) and abs(xy1[0]-buffFig.x)==1 and abs(xy1[1]-buffFig.y)==1 and isinstance(board_temp[xy1[0]][xy1[1]], EmptyFig)):
+                    if(buffFig.color=="white"):
+                        board_temp[xy1[0]+1][xy1[1]] = EmptyFig(xy1[0]+1, xy1[1])
+                        board_temp[xy1[0] + 1][xy1[1]].refresh()
+                        en_passent = True
+                        print("x: ", xy1[0]+1, "y: ", xy1[1])
+                    if (buffFig.color == "black"):
+                        board_temp[xy1[0] - 1][xy1[1]] = EmptyFig(xy1[0] - 1, xy1[1])
+                #check rochade:
+                    #koenig nach links:
+                if(isinstance(buffFig, King)):
+                    if(buffFig.y-xy1[1]==2):
+                        temp_board = swapPos(buffFig.x, buffFig.y-1, buffFig.x, 0, board_temp)
+                        rochade = True
+                    if(buffFig.y - xy1[1] == -2):
+                        temp_board = swapPos(buffFig.x, buffFig.y+1, buffFig.x, 7, board_temp)
+                        rochade = True
+
+
+
                 # set buff figs internal cordinates to the new position it is being moved to
-
-
-
                 buffFig.x = xy1[0]
                 buffFig.y = xy1[1]
 
                 board_temp[xy1[0]][xy1[1]] = buffFig  # write buffFig over newFig in global board array
-                king_x, king_y = find_king(turn, board)
-                if not isinstance(board_temp[buff[0]][buff[1]], King):
-                    board_temp[buff[0]][buff[1]] = EmptyFig(buff[0], buff[1])  # create new emptyFig and place where buff fig used to be
+                board_temp[buff[0]][buff[1]] = EmptyFig(buff[0],
+                                                   buff[1])  # create new emptyFig and place where buff fig used to be
+
                   # refresh moved item
                 board_temp[xy1[0]][xy1[1]].refresh()
 
 
                 if not in_check(turn,board_temp):
                     # Figur wird gezogen:
-                    curr_figure = buffFig
+                    print("Und die curr_figure ist: ", curr_figure)
+                    print("Die Buff-Fig ist: ", buffFig)
+                    curr_figure = decompress(buffFig.compress())
+                    print("Und die curr_figure ist: ", curr_figure)
                     board = board_temp
                     switch_turn()
                     show(board[buff[0]][buff[1]])
                     show(board[xy1[0]][xy1[1]])
-
+                    #Zusatz normaler Koeningszug:
+                    if(isinstance(buffFig, King)):
+                        if(buffFig.color == "white"):
+                            king_white_virgin = False
+                        if (buffFig.color == "black"):
+                            king_black_virgin = False
+                    #Zusatz en-passent:
+                    if(en_passent):
+                        show(board_temp[xy1[0]+1][xy1[1]])
                     buff = [9, 9]  # reset buffer
                     printBoard(board)
-                    if in_check(turn, board):
-                        king_x, king_y = find_king(turn, board)
-                        if is_mate(turn, board, king_x, king_y):
-                            print("mate !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 else:
 
 
@@ -167,9 +174,8 @@ def move(xy1):
             buff = [9, 9]  # reset buffer if click on oponant first
     else:
         buff = [9, 9]  # safty catch
-
-
-
+    #if in_check((turn), board_temp) and is_mate((turn),board_temp):
+    #    print("mate !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 
 def copy_of_board(b):
@@ -202,7 +208,17 @@ def decompress(compressed_fig):
     return fig_class(compressed_fig[1],compressed_fig[2], compressed_fig[3])
 
 
+def swapPos(start_x, start_y, target_x, target_y, loc_board):
+    tmp = loc_board[target_x][target_y]
+    loc_board[start_x][start_y].x = target_x
+    loc_board[start_x][start_y].y = target_y
+    tmp.x = start_x
+    tmp.y = start_y
+    board[start_x][start_y].x = target_x
 
+    loc_board[target_x][target_y] = loc_board[start_x][start_y]
+    loc_board[start_x][start_y] = tmp
+    return loc_board
 
 
 class Figure:
@@ -257,6 +273,7 @@ class EmptyFig():
 
 
 class Queen(Figure):
+    value = 9
     def __init__(self, x, y, color):
         self.img_black = img_queen_black
         self.img_white = img_queen_white
@@ -329,6 +346,7 @@ class Queen(Figure):
 
 
 class King(Figure):
+    value = 0
     def __init__(self, x, y, color):
         self.img_black = img_king_black
         self.img_white = img_king_white
@@ -339,10 +357,38 @@ class King(Figure):
 
     def check_move_possible(self, target_x, target_y, board):
 
-        return (abs(self.x-target_x)<=1 and abs(self.y-target_y)<=1 and not (self.x == target_x and self.y ==target_y) and self.color != board[target_x][target_y].color)
+        if (abs(self.x-target_x)<=1 and abs(self.y-target_y)<=1 and not (self.x == target_x and self.y ==target_y) and self.color != board[target_x][target_y].color):
+            return True
+        #virgin muss noch iwie auf false gesetzt werden.
+        if(self.color=="white" and king_white_virgin):
+            #gucke ob Turm an richtiger Stelle (und Koening an richtiger Stelle)
+            #kleine Rochade
+            if(isinstance(board[7][7], Rook) and target_x== 7 and target_y==6):
+                if(isinstance(board[7][5], EmptyFig) and isinstance(board[7][6], EmptyFig)):
+                    return True
+            #große Rochade
+            if (isinstance(board[7][0], Rook) and target_x == 7 and target_y == 2):
+                if (isinstance(board[7][3], EmptyFig) and isinstance(board[7][2], EmptyFig) and isinstance(board[7][1], EmptyFig)):
+                    return True
+        if (self.color == "black" and king_black_virgin):
+            # gucke ob Turm an richtiger Stelle (und Koening an richtiger Stelle)
+            # kleine Rochade
+            if (isinstance(board[0][7], Rook) and target_x==0 and target_y==6):
+                if (isinstance(board[0][5], EmptyFig) and isinstance(board[0][6], EmptyFig)):
+                    return True
+            # große Rochade
+            if (isinstance(board[0][0], Rook) and target_x==0 and target_y==2):
+                if (isinstance(board[0][3], EmptyFig) and isinstance(board[0][2], EmptyFig) and isinstance(board[0][1],
+                                                                                                           EmptyFig)):
+                    return True
+        return False
+
+        #adde in move den Turm (swap):method
 
 
+        return False
 class Bishop(Figure):
+    value = 3
     def __init__(self, x, y, color):
         self.img_black = img_bishop_black
         self.img_white = img_bishop_white
@@ -383,6 +429,7 @@ class Bishop(Figure):
 
 
 class Rook(Figure):
+    value = 5
     def __init__(self, x, y, color):
         self.img_white = img_rook_white
         self.img_black = img_rook_black
@@ -432,6 +479,7 @@ class Rook(Figure):
 
 
 class Horse(Figure):
+    value = 3
     def __init__(self, x, y, color):
         self.img_black = img_horse_black
         self.img_white = img_horse_white
@@ -454,6 +502,7 @@ class Horse(Figure):
 
 
 class Pawn(Figure):
+    value = 1
     def __init__(self, x, y, color):
         # self.pic = Label(frame, image=img_white, width=img_x, height=img_y)
         self.img_white = img_pawn_white
@@ -465,6 +514,7 @@ class Pawn(Figure):
         return " Pawn "
 
     #Prueft ob Bauer zu Dame wird:
+    ####Board wird einen Zug zu spät aktualisiert????
     def refresh(self):
         if(self.color=="white" and self.x==0):
             fig = Queen(self.x, self.y, "white")
@@ -479,6 +529,7 @@ class Pawn(Figure):
 
 
     def check_move_possible(self, target_x, target_y, board):
+        global curr_figure
 
         if (board[target_x][target_y].color == self.color):
             return False
@@ -524,6 +575,16 @@ class Pawn(Figure):
                                                                                        Figure)):
                 return True
 
+        #test:
+        if(curr_figure==None):
+            print("aktuelle Figur ist None!")
+        #Check en-passent:
+        if(isinstance(curr_figure, Pawn)):
+            #fuer weiss:
+            if(self.color=="white" and self.x==3 and curr_figure.x==3 and abs(self.y-curr_figure.y)==1 and target_x==2 and target_y==curr_figure.y):
+                return True
+            if(self.color=="black" and self.x==4 and curr_figure.x==4 and abs(self.y-curr_figure.y)==1 and target_x==5 and target_y==curr_figure.y):
+                return True
         return False
 
 
