@@ -111,6 +111,37 @@ def switch_turn():
         turn = "white"
 
         """takes a board and a color as input and return True if that color is in check in that board"""
+
+
+def simulateMove(fig_x, fig_y, target_x, target_y, tBoard):
+    compressed = compress_board(tBoard)
+    compressed[fig_x][fig_y][1] = target_x
+    compressed[fig_x][fig_y][2] = target_y
+    compressed[target_x][target_y][1] = fig_x
+    compressed[target_x][target_y][2] = fig_y
+    temp  = compressed[fig_x][fig_y]
+    compressed[fig_x][fig_y] = compressed[target_x][target_y]
+    compressed[target_x][target_y] = temp
+    return decompress_board(compressed)
+
+def move_possible(color, tBoard):
+    tempBoard = copy_of_board(tBoard)
+
+    for line in tempBoard:
+        for fig in line:
+            if fig.color == color:
+                for x in range(0,8):
+                    for y in range(0,8):
+                        if fig.check_move_possible(x,y,tempBoard):
+                            simBoard = simulateMove(fig.x, fig.y, x,y,tempBoard)
+                            if not in_check(color, simBoard):
+                                return True
+    return False
+
+
+
+
+
 def in_check(color, tempBoard):
 
     x,y = find_king(color, tempBoard)
@@ -140,9 +171,9 @@ def find_king(color, tmp_board):
         for fig in line:
             if isinstance(fig, King) and fig.color == color:
                 return fig.x, fig.y
-    else:
-        print(color)
-        printBoard(tmp_board)
+
+    print(color)
+    printBoard(tmp_board)
 
 def printBoard(board):
     for line in board:
@@ -206,6 +237,16 @@ def move(xy1):
                     print("Und die curr_figure ist: ", curr_figure)
                     board = board_temp
                     switch_turn()
+
+                    #see if mate
+                    if not move_possible(turn, board):
+                        if in_check(turn, board):
+
+                            print("check mate")
+                        else:
+                            print("staleMate")
+                    show(board[buff[0]][buff[1]])
+                    show(board[xy1[0]][xy1[1]])
                     showFig(board[buff[0]][buff[1]])
                     showFig(board[xy1[0]][xy1[1]])
                     #Zusatz normaler Koeningszug:
