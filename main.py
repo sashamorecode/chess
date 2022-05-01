@@ -1,8 +1,13 @@
 from tkinter import *
+from chessAI import pieces
+from chessAI import board
+from chessAI import ai
 from tkinter import ttk
 from PIL import ImageTk, Image, ImageOps
 import tkinter as tk
 from copy import deepcopy
+
+
 # globals
 img_x = 100
 img_y = 100
@@ -11,9 +16,69 @@ curr_figure = None
 buff = [9, 9]
 king_white_virgin = True
 king_black_virgin = True
+bot_active = True
+
+def convert_type(fig):
+    color = fig.color
+    c = "W"
+    if(color=="black"):
+        c = "B"
+    if(isinstance(fig, King)):
+        return pieces.King(fig.x, fig.y, c)
+    elif(isinstance(fig, Queen)):
+        return pieces.Queen(fig.x, fig.y, c)
+    elif(isinstance(fig, Bishop)):
+        return pieces.Bishop(fig.x, fig.y, c)
+    elif (isinstance(fig, Pawn)):
+        return pieces.Pawn(fig.x, fig.y, c)
+    elif (isinstance(fig, Horse)):
+        return pieces.Knight(fig.x, fig.y, c)
+    elif (isinstance(fig, Rook)):
+        return pieces.Rook(fig.x, fig.y, c)
+    print("conversion error")
+
+
 
 turn = "white"
 # global end
+
+"""Anbindung zu Bot: 
+    Wenn move (von weiss) fertig ist: Schicke Daten an KI, bekomme Daten, fuehre den Move aus"""
+
+def bot_move(loc_board):
+    ai_rdy_board_array = convert_board_for_AI(loc_board)
+    print(ai_rdy_board_array)
+    ai_rdy_board_object = board.Board(ai_rdy_board_array, not king_white_virgin, not king_black_virgin)
+    return ai.get_ai_move(ai_rdy_board_object, [])
+
+def convert_board_for_AI(loc_board):
+    loc_board = decompress_board(compress_board(loc_board))
+    res_board = None
+    """Probleme:
+    1. Index-Start bei 1-1
+    2. Nur eine Iteration (Board wird nicht initialisiert??--> Fehler in Piece Erstellung)"""
+
+    for i in range(0, 8):
+        line = []
+        for j in range(0, 8):
+
+            tmp_fig = loc_board[i][j]
+
+            ai_fig = convert_type(tmp_fig)
+
+
+            print(ai_fig)
+            line.append(ai_fig)
+        res_board.append(line)
+    return res_board
+
+def de_activate_bot(color, loc_board):
+    global bot_active
+    if(bot_active):
+        bot_active = False
+    else:
+        bot_active = True
+
 
 """switchs the turn"""
 
@@ -90,6 +155,7 @@ def move(xy1):
     global curr_figure
     global king_white_virgin
     global king_black_virgin
+    global bot_active
     en_passent = False
     rochade = False
 
@@ -140,8 +206,8 @@ def move(xy1):
                     print("Und die curr_figure ist: ", curr_figure)
                     board = board_temp
                     switch_turn()
-                    show(board[buff[0]][buff[1]])
-                    show(board[xy1[0]][xy1[1]])
+                    showFig(board[buff[0]][buff[1]])
+                    showFig(board[xy1[0]][xy1[1]])
                     #Zusatz normaler Koeningszug:
                     if(isinstance(buffFig, King)):
                         if(buffFig.color == "white"):
@@ -150,7 +216,7 @@ def move(xy1):
                             king_black_virgin = False
                     #Zusatz en-passent:
                     if(en_passent):
-                        show(board_temp[xy1[0]+1][xy1[1]])
+                        showFig(board_temp[xy1[0] + 1][xy1[1]])
                     buff = [9, 9]  # reset buffer
                     printBoard(board)
                     print(get_score(board))  # gibt den Punktestand aus.
@@ -158,11 +224,16 @@ def move(xy1):
                     #Zusatz Rochade:
                     if(rochade):
                         if(buffFig.y == 2):
-                            show(board[buffFig.x][buffFig.y+1])
-                            show(board[buffFig.x][0])
+                            showFig(board[buffFig.x][buffFig.y + 1])
+                            showFig(board[buffFig.x][0])
                         if (buffFig.y == 6):
-                            show(board[buffFig.x][buffFig.y - 1])
-                            show(board[buffFig.x][7])
+                            showFig(board[buffFig.x][buffFig.y - 1])
+                            showFig(board[buffFig.x][7])
+
+                    #check for AI
+                    if(bot_active and turn == "black"):
+                        move(bot_move(board))
+                        switch_turn()
                 else:
 
 
@@ -529,11 +600,11 @@ class Pawn(Figure):
         if(self.color=="white" and self.x==0):
             fig = Queen(self.x, self.y, "white")
             board[self.x][self.y] = fig
-            show(fig)
+            showFig(fig)
         elif(self.color=="black" and self.x==7):
             fig = Queen(self.x, self.y, "black")
             board[self.x][self.y] = fig
-            show(fig)
+            showFig(fig)
         else:
             super(Pawn, self).refresh()
 
@@ -598,12 +669,12 @@ class Pawn(Figure):
         return False
 
 
-def show(fig):
+def showFig(fig):
     #i = 0
     fig.pic.grid(row=fig.x +1, column=fig.y +1)
 
 
-def showAll(board):
+def showAllFig(board):
     i =0
     for line in board:
         i += 1
@@ -612,6 +683,13 @@ def showAll(board):
             j += 1
             # fig.refresh()
             fig.pic.grid(row=i, column=j)
+
+def showExtras():
+    button_test.grid()
+
+def showStart():
+    showAllFig(board)
+    showExtras()
 
 def loadImg(img):
     img_horse_white = (Image.open(img))
@@ -632,6 +710,13 @@ if __name__ == '__main__':
     frame.grid(column=0, row=0, columnspan=8, rowspan=8)
     # button_frame.grid(column=0, row=0, columnspan=8, rowspan=8)
 
+    """Versuch GUI zu erweitern"""
+    frame_right_options = ttk.Frame(root, borderwidth=5, relief="ridge", width=300, height=850)
+    frame_right_options.grid(row=1, column = 9)
+    #frame_right_options.grid()
+
+
+
     # image loading
     img_horse_white, img_horse_black = loadImg("horse_w.jpg")
 
@@ -649,6 +734,12 @@ if __name__ == '__main__':
     img_queen_white, img_queen_black = loadImg("queen_w.jpg")
     img_king_white, img_king_black = loadImg("king_w.jpg")
     # board = [[None] * 8]*8
+
+    """Test-Button"""
+
+    a = lambda: print("test")
+    button_test = tk.Button(frame_right_options, image = img_bishop_white, width=300, height=50, command = a)
+
 
     for x in range(0, 8):
         line = []
@@ -691,6 +782,6 @@ if __name__ == '__main__':
         board.append(line)
 
 
-    showAll(board)
+    showStart()
 
     root.mainloop()
