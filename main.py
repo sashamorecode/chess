@@ -1,12 +1,10 @@
 from tkinter import *
-from chessAI import pieces
-from chessAI import board
-from chessAI import ai
+import datetime
 from tkinter import ttk
 from PIL import ImageTk, Image, ImageOps
 import tkinter as tk
 from copy import deepcopy
-
+import time
 
 # globals
 img_x = 100
@@ -16,71 +14,24 @@ curr_figure = None
 buff = [9, 9]
 king_white_virgin = True
 king_black_virgin = True
-bot_active = True
-
-def convert_type(fig):
-    color = fig.color
-    c = "W"
-    if(color=="black"):
-        c = "B"
-    if(isinstance(fig, King)):
-        return pieces.King(fig.x, fig.y, c)
-    elif(isinstance(fig, Queen)):
-        return pieces.Queen(fig.x, fig.y, c)
-    elif(isinstance(fig, Bishop)):
-        return pieces.Bishop(fig.x, fig.y, c)
-    elif (isinstance(fig, Pawn)):
-        return pieces.Pawn(fig.x, fig.y, c)
-    elif (isinstance(fig, Horse)):
-        return pieces.Knight(fig.x, fig.y, c)
-    elif (isinstance(fig, Rook)):
-        return pieces.Rook(fig.x, fig.y, c)
-    print("conversion error")
-
-
-
+start_time_white = 0
+start_time_black = 0
+time_spent_white =0
+time_spent_black =0
 turn = "white"
 # global end
 
-"""Anbindung zu Bot: 
-    Wenn move (von weiss) fertig ist: Schicke Daten an KI, bekomme Daten, fuehre den Move aus"""
-
-def bot_move(loc_board):
-    ai_rdy_board_array = convert_board_for_AI(loc_board)
-    print(ai_rdy_board_array)
-    ai_rdy_board_object = board.Board(ai_rdy_board_array, not king_white_virgin, not king_black_virgin)
-    return ai.get_ai_move(ai_rdy_board_object, [])
-
-def convert_board_for_AI(loc_board):
-    loc_board = decompress_board(compress_board(loc_board))
-    res_board = None
-    """Probleme:
-    1. Index-Start bei 1-1
-    2. Nur eine Iteration (Board wird nicht initialisiert??--> Fehler in Piece Erstellung)"""
-
-    for i in range(0, 8):
-        line = []
-        for j in range(0, 8):
-
-            tmp_fig = loc_board[i][j]
-
-            ai_fig = convert_type(tmp_fig)
-
-
-            print(ai_fig)
-            line.append(ai_fig)
-        res_board.append(line)
-    return res_board
-
-def de_activate_bot(color, loc_board):
-    global bot_active
-    if(bot_active):
-        bot_active = False
-    else:
-        bot_active = True
-
-
 """switchs the turn"""
+
+
+def open_popup(text):
+   top = Toplevel(root)
+   top.geometry("750x250")
+   top.title("Child Window")
+   Label(top, text=text, font=('Times 40 bold')).place(x=150,y=80)
+
+
+
 
 #Gibt die aktuelle Punkteverteilung des Boardes als int zurück (- = schwarz), möglicher Nutzen graphical output
 def get_score(loc_board):
@@ -115,6 +66,7 @@ def switch_turn():
 
 def simulateMove(fig_x, fig_y, target_x, target_y, tBoard):
     compressed = compress_board(tBoard)
+
     compressed[fig_x][fig_y][1] = target_x
     compressed[fig_x][fig_y][2] = target_y
     compressed[target_x][target_y][1] = fig_x
@@ -186,7 +138,6 @@ def move(xy1):
     global curr_figure
     global king_white_virgin
     global king_black_virgin
-    global bot_active
     en_passent = False
     rochade = False
 
@@ -241,14 +192,15 @@ def move(xy1):
                     #see if mate
                     if not move_possible(turn, board):
                         if in_check(turn, board):
-
-                            print("check mate")
+                            t = turn + " is in check mate"
+                            open_popup(t)
                         else:
-                            print("staleMate")
+                            t = "Stalemate"
+                            open_popup(t)
+
+
                     show(board[buff[0]][buff[1]])
                     show(board[xy1[0]][xy1[1]])
-                    showFig(board[buff[0]][buff[1]])
-                    showFig(board[xy1[0]][xy1[1]])
                     #Zusatz normaler Koeningszug:
                     if(isinstance(buffFig, King)):
                         if(buffFig.color == "white"):
@@ -257,24 +209,9 @@ def move(xy1):
                             king_black_virgin = False
                     #Zusatz en-passent:
                     if(en_passent):
-                        showFig(board_temp[xy1[0] + 1][xy1[1]])
+                        show(board_temp[xy1[0]+1][xy1[1]])
                     buff = [9, 9]  # reset buffer
                     printBoard(board)
-                    print(get_score(board))  # gibt den Punktestand aus.
-                    print(curr_figure, curr_figure.color, "x: ", curr_figure.x, "y: ", curr_figure.y)
-                    #Zusatz Rochade:
-                    if(rochade):
-                        if(buffFig.y == 2):
-                            showFig(board[buffFig.x][buffFig.y + 1])
-                            showFig(board[buffFig.x][0])
-                        if (buffFig.y == 6):
-                            showFig(board[buffFig.x][buffFig.y - 1])
-                            showFig(board[buffFig.x][7])
-
-                    #check for AI
-                    if(bot_active and turn == "black"):
-                        move(bot_move(board))
-                        switch_turn()
                 else:
 
 
@@ -368,14 +305,17 @@ class Figure:
         return [deepcopy(type(self)), deepcopy(self.x), deepcopy(self.y),deepcopy(self.color)]
 
 
-
 class EmptyFig():
     def __init__(self, x, y):
         # self.pic = Label(frame, image=img_white, width=img_x, height=img_y)
         self.x = x
         self.y = y
         self.color = "Empty"
+        self.img_white = img_white
+        self.img_black = img_black
+
         self.refresh()
+
 
     def __int__(self, x, y, color):
         self.x = x
@@ -385,7 +325,11 @@ class EmptyFig():
 
     def refresh(self):
         a = lambda: move([self.x, self.y])
-        self.pic = tk.Button(frame, image=img_white, width=img_x, height=img_y, command=a)
+        if (self.x + self.y) % 2 == 0:
+            self.img = self.img_white
+        else:
+            self.img = self.img_black
+        self.pic = tk.Button(frame, image=self.img, width=img_x, height=img_y, command=a)
 
     def compress(self):
         return [type(self), self.x, self.y, self.color]
@@ -509,6 +453,8 @@ class King(Figure):
 
 
         return False
+
+
 class Bishop(Figure):
     value = 3
     def __init__(self, x, y, color):
@@ -641,11 +587,11 @@ class Pawn(Figure):
         if(self.color=="white" and self.x==0):
             fig = Queen(self.x, self.y, "white")
             board[self.x][self.y] = fig
-            showFig(fig)
+            show(fig)
         elif(self.color=="black" and self.x==7):
             fig = Queen(self.x, self.y, "black")
             board[self.x][self.y] = fig
-            showFig(fig)
+            show(fig)
         else:
             super(Pawn, self).refresh()
 
@@ -710,12 +656,12 @@ class Pawn(Figure):
         return False
 
 
-def showFig(fig):
+def show(fig):
     #i = 0
     fig.pic.grid(row=fig.x +1, column=fig.y +1)
 
 
-def showAllFig(board):
+def showAll(board):
     i =0
     for line in board:
         i += 1
@@ -724,13 +670,6 @@ def showAllFig(board):
             j += 1
             # fig.refresh()
             fig.pic.grid(row=i, column=j)
-
-def showExtras():
-    button_test.grid()
-
-def showStart():
-    showAllFig(board)
-    showExtras()
 
 def loadImg(img):
     img_horse_white = (Image.open(img))
@@ -741,29 +680,61 @@ def loadImg(img):
     return img_horse_white, img_horse_black
 
 
+
+def update_clock(clock, color):
+    global start_time_white
+    global start_time_black
+
+
+    if color == "white":
+        if start_time_white == 0:
+
+            start_time_black = 0
+            start_time_white = time.time()
+        now = start_time_white-time.time()-time_spent_white + 1800
+
+    else:
+        if start_time_black == 0:
+
+            start_time_white = 0
+            start_time_black = time.time()
+            print(start_time_black)
+            print(time.time())
+            print(time_spent_black)
+        now = start_time_black-time.time()-time_spent_black + 1800
+        #print(now)
+
+    now = datetime.timedelta(seconds=now)
+
+    clock.configure(text=now)
+
+def make_clock(column, row):
+    clock_label = tk.Label(clock_frame, text="0:30:00:000000", font=('Helvetica', 20), fg='red')
+    clock_label.grid(column=column, row=row)
+    return clock_label
+
+
 if __name__ == '__main__':
+
 
     root = Tk()
     # content = ttk.Frame(root)
     frame = ttk.Frame(root, borderwidth=5, relief="ridge", width=800, height=800)
+    clock_frame = ttk.Frame(root, borderwidth=0, width=400, height=100)
+    clock_frame.grid(column=1, row=0)
+    clock_label_white = make_clock(0,0)
+    clock_label_black = make_clock(0,1)
     # button_frame = ttk.Frame(root, borderwidth=5, relief="ridge", width=800, height=800)
     # content.grid(column=1, row=1)
-    frame.grid(column=0, row=0, columnspan=8, rowspan=8)
+    frame.grid(column=1, row=1, columnspan=8, rowspan=8)
+
+
     # button_frame.grid(column=0, row=0, columnspan=8, rowspan=8)
-
-    """Versuch GUI zu erweitern"""
-    frame_right_options = ttk.Frame(root, borderwidth=5, relief="ridge", width=300, height=850)
-    frame_right_options.grid(row=1, column = 9)
-    #frame_right_options.grid()
-
-
 
     # image loading
     img_horse_white, img_horse_black = loadImg("horse_w.jpg")
 
-    img_white = (Image.open("white.jpg"))
-    img_white = img_white.resize((img_x, img_y), Image.ANTIALIAS)
-    img_white = ImageTk.PhotoImage(img_white)
+    img_white, img_black = loadImg("white.jpg")
 
     img_pawn_white, img_pawn_black = loadImg("pawn_w.jpg")
 
@@ -775,12 +746,6 @@ if __name__ == '__main__':
     img_queen_white, img_queen_black = loadImg("queen_w.jpg")
     img_king_white, img_king_black = loadImg("king_w.jpg")
     # board = [[None] * 8]*8
-
-    """Test-Button"""
-
-    a = lambda: print("test")
-    button_test = tk.Button(frame_right_options, image = img_bishop_white, width=300, height=50, command = a)
-
 
     for x in range(0, 8):
         line = []
@@ -823,6 +788,20 @@ if __name__ == '__main__':
         board.append(line)
 
 
-    showStart()
+    showAll(board)
+    root.update_idletasks()
+    root.update()
 
-    root.mainloop()
+    while True:
+        if turn == "white":
+            if start_time_white == 0 and start_time_black != 0:
+
+                time_spent_black += abs(time.time() - start_time_black)
+            update_clock(clock_label_white, turn)
+
+        if turn == "black":
+            if start_time_black == 0:
+                time_spent_white += abs(time.time() - start_time_white)
+            update_clock(clock_label_black, turn)
+        root.update_idletasks()
+        root.update()
