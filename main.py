@@ -31,8 +31,16 @@ def open_popup(text):
    Label(top, text=text, font=('Times 40 bold')).place(x=150,y=80)
 
 
-
-
+def refresh_rooks(board_temp):
+    for line in board_temp:
+        for fig in line:
+            if isinstance(fig, Rook):
+                fig.refresh()
+                show(fig)
+    for x in [0,7]:
+        for y in [0,7]:
+            board_temp[x][y].refresh()
+            show(fig)
 #Gibt die aktuelle Punkteverteilung des Boardes als int zurück (- = schwarz), möglicher Nutzen graphical output
 def get_score(loc_board):
     res = 0
@@ -160,10 +168,13 @@ def move(xy1):
                     #koenig nach links:
                 if(isinstance(buffFig, King)):
                     if(buffFig.y-xy1[1]==2):
-                        temp_board = swapPos(buffFig.x, buffFig.y-1, buffFig.x, 0, board_temp)
+                        swapPos(buffFig.x, buffFig.y-1, buffFig.x, 0, board_temp)
+                        refresh_rooks(board_temp)
                         rochade = True
+
                     if(buffFig.y - xy1[1] == -2):
-                        temp_board = swapPos(buffFig.x, buffFig.y+1, buffFig.x, 7, board_temp)
+                        swapPos(buffFig.x, buffFig.y+1, buffFig.x, 7, board_temp)
+                        refresh_rooks(board_temp)
                         rochade = True
 
 
@@ -273,10 +284,12 @@ def swapPos(start_x, start_y, target_x, target_y, loc_board):
     loc_board[start_x][start_y].y = target_y
     tmp.x = start_x
     tmp.y = start_y
-    board[start_x][start_y].x = target_x
+    #board[start_x][start_y].x = target_x
 
     loc_board[target_x][target_y] = loc_board[start_x][start_y]
     loc_board[start_x][start_y] = tmp
+    loc_board[target_x][target_y].refresh()
+    loc_board[start_x][start_y].refresh()
     return loc_board
 
 
@@ -420,6 +433,7 @@ class King(Figure):
 
     def __repr__(self):
         return " King "
+
 
     def check_move_possible(self, target_x, target_y, board):
 
@@ -706,7 +720,7 @@ def update_clock(clock, color):
 
     now = datetime.timedelta(seconds=now)
 
-    clock.configure(text=now)
+    clock.configure(text=(now))
 
 def make_clock(column, row):
     clock_label = tk.Label(clock_frame, text="0:30:00:000000", font=('Helvetica', 20), fg='red')
